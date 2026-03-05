@@ -8,10 +8,11 @@ import java.net.URI;
 import java.util.List;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*; // 追加
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
+@RequestMapping("/api/lists") // ← これで「/api/lists」というURLを受け付けるようになります
 public class TodoListsController implements ListsApi {
 
     private final TodoListRepository todoListRepository;
@@ -20,7 +21,8 @@ public class TodoListsController implements ListsApi {
         this.todoListRepository = todoListRepository;
     }
 
-    public ResponseEntity<TodoList> createList(TodoList todoList) {
+    @PostMapping // 作成（POST /api/lists）
+    public ResponseEntity<TodoList> createList(@RequestBody TodoList todoList) {
         final TodoList savedTodoList = todoListRepository.save(todoList);
         URI location = ServletUriComponentsBuilder
             .fromCurrentRequest()
@@ -30,29 +32,34 @@ public class TodoListsController implements ListsApi {
         return ResponseEntity.created(location).body(savedTodoList);
     }
 
-    public ResponseEntity<Void> deleteListById(String listId) {
+    @DeleteMapping("/{listId}") // 削除（DELETE /api/lists/{id}）
+    public ResponseEntity<Void> deleteListById(@PathVariable String listId) {
         return todoListRepository
             .findById(listId)
-            .map(l -> todoListRepository.deleteTodoListById(l.getId()))
-            .map(l -> ResponseEntity.noContent().<Void>build())
+            .map(l -> {
+                todoListRepository.deleteTodoListById(l.getId());
+                return ResponseEntity.noContent().<Void>build();
+            })
             .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    public ResponseEntity<TodoList> getListById(String listId) {
+    @GetMapping("/{listId}") // 特定取得（GET /api/lists/{id}）
+    public ResponseEntity<TodoList> getListById(@PathVariable String listId) {
         return todoListRepository
             .findById(listId)
             .map(ResponseEntity::ok)
             .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    public ResponseEntity<List<TodoList>> getLists(BigDecimal top, BigDecimal skip) {
-        // no need to check nullity of top and skip, because they have default values.
+    @GetMapping // 一覧取得（GET /api/lists）
+    public ResponseEntity<List<TodoList>> getLists(
+            @RequestParam(defaultValue = "20") BigDecimal top, 
+            @RequestParam(defaultValue = "0") BigDecimal skip) {
         return ResponseEntity.ok(todoListRepository.findAll(skip.intValue(), top.intValue()));
     }
 
-    public ResponseEntity<TodoList> updateListById(String listId, @NotNull TodoList todoList) {
-        // make sure listId is set into the todoItem, otherwise it will create a new todo
-        // list.
+    @PutMapping("/{listId}") // 更新（PUT /api/lists/{id}）
+    public ResponseEntity<TodoList> updateListById(@PathVariable String listId, @NotNull @RequestBody TodoList todoList) {
         todoList.setId(listId);
         return todoListRepository
             .findById(listId)
