@@ -1,6 +1,36 @@
+### 1. TodoList を作成
 POST https://ca-api-ghzb36bmwshsm.graydesert-29f8bf12.japaneast.azurecontainerapps.io/api/lists
 Content-Type: application/json
 
 {
-  "title": "My List"
+  "name": "My List",
+  "description": "Sample list"
+}
+
+### 2. TodoItem を追加（上で作った listId を使う）
+POST https://ca-api-ghzb36bmwshsm.graydesert-29f8bf12.japaneast.azurecontainerapps.io/lists/69a93c9d785f657305472adc/items
+Content-Type: application/json
+
+{
+  "title": "First item",
+  "state": "TODO"
+}
+
+### 3. TodoItem 一覧を取得
+GET https://ca-api-ghzb36bmwshsm.graydesert-29f8bf12.japaneast.azurecontainerapps.io/lists/69a93c9d785f657305472adc/items
+
+### 4. 別のリストに TodoItem を追加
+POST https://ca-api-ghzb36bmwshsm.graydesert-29f8bf12.japaneast.azurecontainerapps.io/lists/69a93e39785f657305472adf/items
+Content-Type: application/json
+
+{
+  "title": "First item",
+  "state": "TODO"
+}
+POST https://ca-api-ghzb36bmwshsm.graydesert-29f8bf12.japaneast.azurecontainerapps.io/api/lists/69a940cb785f657305472ae2/items
+Content-Type: application/json
+
+{
+  "title": "First item",
+  "state": "TODO"
 }
